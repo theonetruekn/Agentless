@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from agentless.util.api_requests import create_chatgpt_config, request_chatgpt_engine
+from agentless.util.api_requests import create_chatgpt_config, request_chatgpt_engine, create_ollama_config
+
+import ollama
 
 
 class DecoderBase(ABC):
@@ -138,6 +140,48 @@ class DeepSeekChatDecoder(DecoderBase):
     def is_direct_completion(self) -> bool:
         return False
 
+class OllamaDecoder(DecoderBase):
+    def __init__(self, name: str, logger, **kwargs) -> None:
+        super().__init__(name, logger, **kwargs)
+
+    def codegen(self, message: str, num_samples: int = 1) -> List[dict]:
+        if self.temperature == 0:
+            assert num_samples == 1
+
+        trajs = []
+        for _ in range(num_samples):
+            config = create_ollama_config(
+                message=message,
+                max_tokens=self.max_new_tokens,
+                temperature=self.temperature,
+                model=self.name,
+            )
+            response = ollama.chat(model=config['model'], messages=config['messages'])
+            if response:
+                trajs.append(
+                    {
+                        "response": response['message']['content'],
+                        "usage": {
+                            "completion_tokens": len(response['message']['content'].split()),
+                            "prompt_tokens": len(message.split()),
+                        },
+                    }
+                )
+            else:
+                trajs.append(
+                    {
+                        "response": "",
+                        "usage": {
+                            "completion_tokens": 0,
+                            "prompt_tokens": 0,
+                        },
+                    }
+                )
+
+        return trajs
+
+    def is_direct_completion(self) -> bool:
+        return False
 
 def make_model(
     model: str,
@@ -157,6 +201,14 @@ def make_model(
         )
     elif backend == "deepseek":
         return DeepSeekChatDecoder(
+            name=model,
+            logger=logger,
+            batch_size=batch_size,
+            max_new_tokens=max_tokens,
+            temperature=temperature,
+        )
+    elif backend == "ollama":
+        return OllamaDecoder(
             name=model,
             logger=logger,
             batch_size=batch_size,

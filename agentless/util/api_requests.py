@@ -48,6 +48,18 @@ def create_chatgpt_config(
         }
     return config
 
+def create_ollama_config(
+    message: str,
+    max_tokens: int,
+    temperature: float,
+    model: str
+) -> Dict:
+    return {
+        "model": model,
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+        "messages": [{"role": "user", "content": message}]
+    }
 
 def handler(signum, frame):
     # swallow signum and frame
