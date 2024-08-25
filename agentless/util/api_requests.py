@@ -7,6 +7,8 @@ import tiktoken
 
 def num_tokens_from_messages(message, model="gpt-3.5-turbo-0301"):
     """Returns the number of tokens used by a list of messages."""
+    if model=="llama3.1":
+        return 0
     try:
         encoding = tiktoken.encoding_for_model(model)
     except KeyError:
