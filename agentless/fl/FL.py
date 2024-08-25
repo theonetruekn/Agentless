@@ -39,8 +39,8 @@ Please look through the following GitHub problem description and Repository stru
 
 ###
 
-Please only provide the full path and return at most 5 files.
-The returned files should be separated by new lines ordered by most to least important and wrapped with ```
+Please only provide the full path and return at most 5 files. Do not provide commentary.
+The returned files should be separated by new lines ordered by most to least important and wrapped with ```. DO NOT ADD ANYTHING ELSE TO YOUR RESPONSE.
 For example:
 ```
 file1.py
